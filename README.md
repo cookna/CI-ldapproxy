@@ -23,4 +23,8 @@ A nodejs based ldapproxy to the CI web services.
 ## Functions in ldapproxy.js
 
 ### authUser
+    _authUser(id, pwd)_
+
+    Description: 
+        Used to authenticate user using id and password.  Uses a JSON request to server to validate user based on parameters.
 
