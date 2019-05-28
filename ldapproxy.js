@@ -12,7 +12,7 @@
 *
 */
 'use strict'
-const config = require('./config/dev.js');
+const config = require('./dev.js');
 const CIToken = require('./CIToken.js');
 const ldap = require('ldapjs');
 const request = require('request-promise-native');
@@ -45,6 +45,52 @@ async function authUser(id, pwd) {
       return null;
     }
   }
+
+//Returns all Users
+async function getAllUsers() {
+  var options = {
+    uri: config.tenant.ui+'/v2.0/Users?count=100&startIndex=1',
+    method: "GET", 
+    headers: { "authorization": "Bearer " +token.get()},
+  }
+
+  try {
+    let cred = await request(options);
+    cred = JSON.parse(cred);
+    //log.info(cred);
+    return cred;
+    //Parse over cred obj to identify realm
+   // for(var i in cred ) {
+
+     // if(realm1.localeCompare(compareStr) == 0) {
+     //   log.info(cred.Resources[i]);
+     //   converttoLDAP(cred.Resources[i])
+        //var obj = convertfromLDAP(cred.Resources[i].userName, cred.Resources, cred.Resources[i].id)
+      //}
+      //log.info(cred.Resources[i]['urn:ietf:params:scim:schemas:extension:ibm:2.0:User'].realm);
+    }
+    catch(e) {
+    log.error('Error with gathering realm');
+    return null;
+  }
+  return null;
+
+  try {
+    let cred = await request(options);
+    cred = JSON.parse(cred);
+
+    if(cred.totalResults <= 1) {
+      log.warn('Error with totalResults %s', cred.totalResults);
+      return null;
+    }
+    return cred;
+  }
+    catch (e) {
+      log.error('try catch is %s', e);
+      return null;
+    }
+  
+}
 
 // get a single user by name
 async function getUserbyName(id) {
@@ -85,6 +131,25 @@ async function getUser(id) {
     let cred = await request(options);
     return JSON.parse(cred);
   } catch (e) {
+    log.error('try catch is ', e);
+    return null;
+  }
+}
+
+async function getGroups() {
+  var options = {
+    uri: config.tenant.ui+'/v2.0/Groups?count=100&sortBy=displayName&startIndex=1',
+    method: "GET",
+    headers: { "authorization": "Bearer "+token.get() },
+  }
+
+  try {
+    let cred = await request(options);
+    cred = JSON.parse(cred);
+
+    log.info(cred);
+    return cred;
+  } catch(e) {
     log.error('try catch is ', e);
     return null;
   }
@@ -139,7 +204,7 @@ function buildEMails(ea) {
 // We only print a single entry, all others will fail i.e. 0 or 2 or more.
 function converttoLDAP(dn, user, id) {
   log.debug('entry');
-  log.trace(JSON.stringify(user.Resources[0]));
+  log.trace(JSON.stringify(user));
 
   var obj = {
     dn: config.ldap.type+dn+","+config.ldap.root,
@@ -149,11 +214,11 @@ function converttoLDAP(dn, user, id) {
       uid: dn,
       sn: dn,
       description: '',
-      sn: user.Resources[0].name.familyName,
-      givenName: user.Resources[0].name.givenName,
-      active: user.Resources[0].active,
-      id: user.Resources[0].id,
-      userName: user.Resources[0].name.userName,
+      sn: user.name.familyName,
+      givenName: user.name.givenName,
+      active: user.active,
+      id: user.id,
+      userName: user.name.userName,
       email: buildEMails(id.emails),
       phone: buildEMails(id.phoneNumbers),
       memberof: buildGroups(id.groups),
@@ -264,7 +329,46 @@ function runLDAPServer() {
       var id = filter.substring(filter.indexOf('=')+1);
       id=id.substring(0,id.indexOf(')'));
       log.trace('search id in filter = ', id);
+      //test weather input id is *, if true, call search on all Entries
+
+      if(id.localeCompare("*") == 0) {
+        log.info("String matchs * calling get all users");
+
+        getAllUsers().then( obj2 => {
+          if(obj2 == null) {
+            log.warn("Invalid return");
+            res.end();
+            return next();
+          }
+          //Iterate over list of users
+          for(var i in obj2.Resources) {
+            
+            var obj = converttoLDAP(obj2.Resources[i].name.givenName, obj2.Resources[i], obj2.Resources[i]);
+            
+            res.send(obj);
+            
+          }
+          res.end();
+          });
+        
+        return next();
+      }
+      //
+      else if(id.localeCompare("groups") == 0) {
+        log.info("Searching for Groups");
+        getGroups().then ( groups => {
+          if(groups == null) {
+            info.warn("No Groups Available");
+            res.end();
+            return next();
+            
+          }
+          
+        });
+        return next();
+      }
     }
+    
 
     getUserbyName(id).then( status => {
       if (status == null) {
@@ -279,7 +383,7 @@ function runLDAPServer() {
           return next();
         }
 
-        var obj = converttoLDAP(id, status, status2);
+        var obj = converttoLDAP(id, status.Resources[0], status2);
 
         res.send(obj);
         res.end();
@@ -318,6 +422,11 @@ function runLDAPServer() {
     res.end();
     return next();
   });
+
+  
+
+
+
 
   // An add example
   server.add(config.ldap.root, function(req, res, next) {
