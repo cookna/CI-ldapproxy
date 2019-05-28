@@ -65,7 +65,7 @@ A nodejs based ldapproxy to the CI web services.
     Usage: getGroups()
 
     Description: 
-        Called when querying the server with **ou=groups** as input. Function prints out all group names and basic information about group. 
+        Called when querying the server with <strong>ou=groups</strong> as input. Function prints out all group names and basic information about group. 
 
     Return:
         Returns all group in cloud
