@@ -128,7 +128,7 @@ A nodejs based ldapproxy to the CI web services.
     Description: 
         Define the LDAP server properties – last step is to kill the server.  Contains several server commands that are used to access and manipulate the server
 
-    **Server Functions within runLDAPServer**
+### Functions within runLDAPServer
 
 #### server.bind
     Usage: server.bind(config.ldap.root, function(req,res, next))
