@@ -2,7 +2,7 @@
 A nodejs based ldapproxy to the CI web services.
 
 
-##Start-up
+## Start-up
 1. In order to query the proxy, start up the server by typing node ldapproxy.js
 2. From separate terminal window run some built in functionalities the proxy allows
   * Example query
@@ -20,6 +20,7 @@ A nodejs based ldapproxy to the CI web services.
           * ou=users: Returns all Users
           * ou=_username_: Returns all information on the _username_, if _username_ is not in cloud null it returned 
 
-##Functions in ldapproxy.js
+## Functions in ldapproxy.js
 
-###authUser
+### authUser
+
