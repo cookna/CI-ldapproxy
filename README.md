@@ -9,7 +9,7 @@ A nodejs based ldapproxy to the CI web services.
 
 
 ## Start-up
-1. In order to query the proxy, start up the server by typing node ldapproxy.js
+1. In order to query the proxy, start up the server by entering node ldapproxy.js into terminal/IDE terminal
 2. Install Nodejs using link in materials
   * In directory where project is located type command _npm install_ to install nodejs modules.  This will solve any 'Cannot find Module' errors at compile-time
 3. From separate terminal window run some built in functionalities the proxy allows
@@ -32,10 +32,10 @@ A nodejs based ldapproxy to the CI web services.
           - "o=pps": searches both users and groups
       - last agruement is what the proxy will interpret and determine which container to use. Depending on -b arguement.
           - With -b of "ou=groups, o=pps"
-            * uid= _groupName_ : returns group information 
+            * uid= _groupName_ : returns _groupName_ information 
             * If there is no argument, all groups are returned.
           - With -b of "ou=users, o=pps"
-            * uid= _username_ : returns user information 
+            * uid= _username_ : returns _username_ information 
             * If there is no argument, all users are returned. 
 
 ## Functions in ldapproxy.js
@@ -117,7 +117,7 @@ A nodejs based ldapproxy to the CI web services.
         ea: Array of emails associated with user
     Return:
         returns a string of emails
-###convertGrouptoLDAP
+### convertGrouptoLDAP
     Usage: convertGrouptoLDAP(group);
 
     Description: 
@@ -127,7 +127,7 @@ A nodejs based ldapproxy to the CI web services.
     Returns: 
         LDAP compatible object.
 
-###convertGroupstoLDAP
+### convertGroupstoLDAP
     Usage: convertGroupstoLDAP(group)
 
     Description:
@@ -215,7 +215,7 @@ A nodejs based ldapproxy to the CI web services.
 ### GET
     Usage: get(url)
     
-    Description: REST call that takes in url as argument.  GET calls the server and returns specified data. 
+    Description: REST call that takes in url as argument.  GET calls the cloud identity tenant and returns specified data . 
 
 ```javascript
 async get(url = '/') {
@@ -241,7 +241,7 @@ async get(url = '/') {
 ### POST
     Usage: post(url, Inbody)
 
-    Description: REST call that takes in the url and body of data that is to be added.
+    Description: REST call that takes in the url and body of data that is to be added to specified tenant.
 
 ```javascript
     async post(url = '/', Inbody) {
