@@ -219,14 +219,14 @@ A nodejs based ldapproxy to the CI web services.
 
     CODE:
 
-'''
-    var options = {
-      uri: this.config.tenant.ui+url,
+```
+var options = {
+uri: this.config.tenant.ui+url,
       method: "GET",
       headers: { "authorization": "Bearer "+token.get() },
     }
     return await request(options);
-'''
+```
     Options Variable: 
         uri: cloud identity tenant plus the specific search url from parameter.
         method: GET request.
