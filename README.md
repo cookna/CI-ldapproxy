@@ -15,18 +15,28 @@ A nodejs based ldapproxy to the CI web services.
 3. From separate terminal window run some built in functionalities the proxy allows
   * Example query
     * ldapsearch -h localhost -p 389 -D "uid=username, o=pps" -w password -b "o=pps" ou=groups
+      - ldapsearch: specific function call to the cloud identity server. 
+        List of all server functions
+          - ldapsearch
+          - ldapadd
       - h: DONT KNOW HOW TO EXPLAIN
       - p: Port Number
       - D: 
         - uid: username of valid user on cloud
         - o= DONT KNOW 
       - w: Password of valid user
-      - b: DONT KNOW
-      - last agruement is what the proxy will interpret and determine which functionality to use.
-        * Proxy Functions
-          * ou=groups: Returns all groups
-          * ou=users: Returns all Users
-          * ou=_username_: Returns all information on the _username_, if _username_ is not in cloud null it returned 
+      - b: Container search.
+        List of Container searches:
+          - "ou=users, o=pps": searches users
+          - "ou=groups, o=pps": searches groups
+          - "o=pps": searches both users and groups
+      - last agruement is what the proxy will interpret and determine which container to use. Depending on -b arguement.
+          - With -b of "ou=groups, o=pps"
+            * uid= _groupName_ : returns group information 
+            * If there is no argument, all groups are returned.
+          - With -b of "ou=users, o=pps"
+            * uid= _username_ : returns user information 
+            * If there is no argument, all users are returned. 
 
 ## Functions in ldapproxy.js
 
@@ -107,7 +117,27 @@ A nodejs based ldapproxy to the CI web services.
         ea: Array of emails associated with user
     Return:
         returns a string of emails
+###convertGrouptoLDAP
+    Usage: convertGrouptoLDAP(group);
 
+    Description: 
+        Function take in a group object as a parameter and converts object into ldap object.
+    Parameters:
+        group: group object containing display name - date created - last time modified.
+    Returns: 
+        LDAP compatible object.
+
+###convertGroupstoLDAP
+    Usage: convertGroupstoLDAP(group)
+
+    Description:
+        Function takes in an array of all groups then converts them into an array of LDAP compatible objects that will be sent to client. 
+
+    Parameters:
+        groups: array of groups.
+    Returns:   
+        Array of LDAP compatible group objects
+    
 ### converttoLDAP
     Usage: converttoLDAP(dn, user, id)
 
@@ -177,3 +207,32 @@ A nodejs based ldapproxy to the CI web services.
     Parameters:
         config.ldap.root: DONT KNOW 
         function(): NOT USED
+
+
+## Functions in CIRequest
+    Description: CIRequest is an abstract class that contains all REST calls used in ldapproxy.js
+
+### GET
+    Usage: get(url)
+    
+    Description: REST call that takes in url as argument.  GET calls the server and returns specified data. 
+
+    CODE:
+'''javascript
+    async get(url = '/') {
+    log.debug('(url): ',url);
+
+    var options = {
+      uri: this.config.tenant.ui+url,
+      method: "GET",
+      headers: { "authorization": "Bearer "+token.get() },
+    }
+
+    return await request(options);
+    }
+  '''
+    Options Variable: 
+        uri: cloud identity tenant plus the specific search url from parameter.
+        method: GET request.
+        headers: This information contains information on the token created in initialization for security.
+    

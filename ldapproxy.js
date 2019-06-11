@@ -1,6 +1,7 @@
 /*************************************************************************************
 * IBM Security Product Professional Services
 * schmidtm@us.ibm.com
+* nathan.a.cook@ibm.com
 *
 * A simple ldap proxy to the CIx webservices to provide the following operations
 * over an LDA Protocol
@@ -17,17 +18,20 @@ const CIToken = require('./CIToken.js');
 const ldap = require('ldapjs');
 const request = require('request-promise-native');
 const log = require('tracer').colorConsole({level: config.log});
+const CIRequest = require('./CIRequest');
 // log levels are log - trace - debug - info - warn - error
 
 
 // Variables we need:
 var token = new CIToken();
+var req = new CIRequest();
+
 
 // authenticate user
 async function authUser(id, pwd) {
     log.debug('authUser(id,pwd) (%s,%s)',id,pwd);
 
-    var options = {
+ /*   var options = {
       uri: config.tenant.ui+'/v1.0/authnmethods/password/'+config.tenant.registry,
       method: "POST",
       json: true,
@@ -36,10 +40,16 @@ async function authUser(id, pwd) {
         "username": id,
         "password": pwd
       }
+    } */ 
+
+    var body = {
+      'username': id,
+      'password': pwd
     }
 
     try {
-      return await request(options);
+      let url = '/v1.0/authnmethods/password/';
+      return await req.post(url, body);
     } catch (e) {
       log.error('try catch is ', e);
       return null;
@@ -48,14 +58,9 @@ async function authUser(id, pwd) {
 
 //Returns all Users
 async function getAllUsers() {
-  var options = {
-    uri: config.tenant.ui+'/v2.0/Users?count=100&startIndex=1',
-    method: "GET", 
-    headers: { "authorization": "Bearer " +token.get()},
-  }
-
+ 
   try {
-    let cred = await request(options);
+    let cred = await req.get("/v2.0/Users");
     cred = JSON.parse(cred);
     //log.info(cred);
     return cred;
@@ -96,14 +101,8 @@ async function getAllUsers() {
 async function getUserbyName(id) {
     log.debug('(id) (%s)', id);
 
-    var options = {
-      uri: config.tenant.ui+'/v2.0/Users?filter=userName eq "' + id + '"',
-      method: "GET",
-      headers: { "authorization": "Bearer "+token.get() },
-    }
-
     try {
-      let cred = await request(options);
+      let cred = await req.get('/v2.0/Users?filter=userName eq "' + id + '"');
       cred = JSON.parse(cred);
 
       // if we do not find a user we do not throw any error so check if result is 0
@@ -121,14 +120,9 @@ async function getUserbyName(id) {
 // get a single user by id
 async function getUser(id) {
   log.debug('(id) (%s)', id);
-  var options = {
-    uri: config.tenant.ui+'/v2.0/Users/' + id,
-    method: "GET",
-    headers: { "authorization": "Bearer "+token.get() },
-  }
 
   try {
-    let cred = await request(options);
+    let cred = await req.get('/v2.0/Users/' + id);
     return JSON.parse(cred);
   } catch (e) {
     log.error('try catch is ', e);
@@ -137,20 +131,28 @@ async function getUser(id) {
 }
 
 async function getGroups() {
-  var options = {
-    uri: config.tenant.ui+'/v2.0/Groups?count=100&sortBy=displayName&startIndex=1',
-    method: "GET",
-    headers: { "authorization": "Bearer "+token.get() },
-  }
-
+  
   try {
-    let cred = await request(options);
+    let cred = await req.get('/v2.0/Groups/');
     cred = JSON.parse(cred);
 
-    log.info(cred);
+ //   log.info(cred);
     return cred;
   } catch(e) {
     log.error('try catch is ', e);
+    return null;
+  }
+}
+
+async function getGroup(id) {
+  try {
+    let cred = await req.get('/v2.0/Groups/' + id);
+    cred = JSON.parse(cred);
+
+//    log.info(cred);
+    return cred;
+  } catch(e) {
+    log.error('Group id does not exist');
     return null;
   }
 }
@@ -196,6 +198,58 @@ function buildEMails(ea) {
     })
   }
   return el;
+}
+
+function buildMember(ma) {
+  log.info('Building Member');
+ // log.trace(JSON.stringify(ma));
+  let ml = [];
+  if(ma != undefined) {
+    ma.forEach(function(item) {
+      ml.push(item.name.formatted);
+    })
+    
+  }
+  return ml
+  }
+
+
+  function convertGrouptoLDAP(group) {
+  log.info('Converting group to LDAP');
+  //log.trace(JSON.stringify(group));
+
+  var obj = {
+      dn: config.ldap.type+group.displayName +','+config.ldap.root,
+      attributes: {
+        displayName: group.displayName,
+        created: group.meta.created,
+        lastModified: group.meta.created,
+        resourceType: group.meta.resourceType,
+        members: buildMember(group.members)
+      }
+      
+      
+  }
+  //log.info(obj);
+  return obj; 
+}
+
+function convertGroupstoLDAP(groups) {
+  var obj = []
+  //log.trace(JSON.stringify(groups));
+  groups.Resources.forEach(go => {
+  obj.push({
+    dn: config.ldap.type+go.displayName +','+config.ldap.root,
+    attributes: {
+      displayName: go.displayName,
+      created: go.meta.created,
+      lastModified: go.meta.created,
+      resourceType: go.meta.resourceType,
+      members: buildMember(go.members)
+    }
+}); 
+  });
+  return obj;
 }
 // Convert the JSON result from the CIx call to a object to be sent via ldap
 // This will build a "fake" ldap entry, and from here we control how much is returned
@@ -261,7 +315,7 @@ function convertfromLDAP(user) {
   return(obj);
 }
 // Define the ldap server functions and properties - last step is to kick it.
-function runLDAPServer() {
+ function runLDAPServer() {
     log.debug('entry');
     var server = ldap.createServer();
 
@@ -329,68 +383,142 @@ function runLDAPServer() {
       var id = filter.substring(filter.indexOf('=')+1);
       id=id.substring(0,id.indexOf(')'));
       log.trace('search id in filter = ', id);
-      //test weather input id is *, if true, call search on all Entries
+      //Parsing -b tag to see what container to search
+      if(dn == "ou=groups, o=pps") {
+        if(id == '*' || id == undefined) {
+          log.info("Searching for Groups");
+          getGroups().then ( groups => {
+            if(groups == null) {
+              info.warn("No Groups Available");
+              res.end();
+              return next();   
+            }
+            log.info(groups);
+          
+            var resp = convertGroupstoLDAP(groups);
+            log.trace(resp);
+            //Loop sends basic information about all groups i.e. name - created - last time modified
+            resp.forEach(sd => {
+              res.send(sd);
+            })
 
-      if(id.localeCompare("*") == 0) {
-        log.info("String matchs * calling get all users");
+            res.end();
+          
+          
+        });
+        log.info("Exiting groups search body");
+        //res.end();
+        return next();
+        }
+        else {
+          //Searching for a specific group 
+          getGroups().then(async groups => {
+            if(groups == null) {
+              log.warn("Invalid return, no groups available");
+              res.end();
+              return next();
+            }
 
-        getAllUsers().then( obj2 => {
+            groups.Resources.forEach(async gp => {
+              if(gp.displayName == id) {
+                getGroup(gp.id).then(async retObj => {
+                  if(retObj != undefined) {
+                    var ret = convertGrouptoLDAP(retObj);
+                    res.send(ret);
+                    res.end();
+                    return next();
+                  }
+                })
+              }
+            })
+          })
+         }
+      }
+      else if(dn == "ou=users, o=pps") {
+        log.info("Searching users");
+        //If id is empty or undefined return container with all users
+        if(id == '*' || id == undefined) {
+          log.info("String matchs users calling get all users");
+  
+          getAllUsers().then( obj2 => {
+            if(obj2 == null) {
+              log.warn("Invalid return");
+              res.end();
+              return next();
+            }
+            //Iterate over list of users
+            for(var i in obj2.Resources) {          
+              var obj = converttoLDAP(obj2.Resources[i].name.givenName, obj2.Resources[i], obj2.Resources[i]);   
+              res.send(obj);       
+            }
+            log.info("Exiting User forloop");
+            res.end();
+            return next();
+            });
+        }
+        //If id is defined search for specificed user
+        else {
+          getUserbyName(id).then( status => {
+            if (status == null) {
+              log.warn('search with getUserbyName == null');
+              res.end();
+              return next();
+            }
+            getUser(status.Resources[0].id).then( status2 => {
+              if (status2 == null) {
+                log.warn('search with getUser == null');
+                res.end();
+                return next();
+              }
+      
+              var obj = converttoLDAP(id, status.Resources[0], status2);
+      
+              res.send(obj);
+              res.end();
+              return next();
+            });
+          });
+        }
+      }
+      //Base search of all users and groups
+      else if(dn == "o=pps") {
+        getAllUsers().then(async obj2 => {
           if(obj2 == null) {
             log.warn("Invalid return");
             res.end();
             return next();
           }
           //Iterate over list of users
-          for(var i in obj2.Resources) {
-            
-            var obj = converttoLDAP(obj2.Resources[i].name.givenName, obj2.Resources[i], obj2.Resources[i]);
-            
-            res.send(obj);
-            
+          for(var i in obj2.Resources) {          
+            var obj = converttoLDAP(obj2.Resources[i].name.givenName, obj2.Resources[i], obj2.Resources[i]);   
+            res.send(obj);       
           }
-          res.end();
+          log.info("Exiting User forloop");
           });
-        
-        return next();
-      }
-      //
-      else if(id.localeCompare("groups") == 0) {
-        log.info("Searching for Groups");
-        getGroups().then ( groups => {
-          if(groups == null) {
-            info.warn("No Groups Available");
+          log.info("Searching for Groups");
+          getGroups().then (async groups => {
+            if(groups == null) {
+              info.warn("No Groups Available");
+              res.end();
+              return next();   
+            }
+            log.info(groups);
+          
+            var resp = convertGroupstoLDAP(groups);
+            log.trace(resp);
+            //Loop sends basic information about all groups i.e. name - created - last time modified
+            resp.forEach(async sd => {
+              res.send(sd);
+            })
+            log.info("Exiting for loop");
             res.end();
             return next();
-            
-          }
           
         });
-        return next();
       }
-    }
-    
-
-    getUserbyName(id).then( status => {
-      if (status == null) {
-        log.warn('search with getUserbyName == null');
-        res.end();
-        return next();
-      }
-      getUser(status.Resources[0].id).then( status2 => {
-        if (status2 == null) {
-          log.warn('search with getUser == null');
-          res.end();
-          return next();
-        }
-
-        var obj = converttoLDAP(id, status.Resources[0], status2);
-
-        res.send(obj);
-        res.end();
-        return next();
-      });
-    });
+  }
   });
+
 
 // Search for the root base!
 // We just return our root base.
@@ -459,6 +587,7 @@ async function main() {
     log.info('start');
     // Initialize the token
     token.init(config.tenant.ui,config.tenant.id,config.tenant.secret);
+    req.init(config)
     // Run the actual Server
     runLDAPServer();
 
