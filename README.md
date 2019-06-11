@@ -217,7 +217,6 @@ A nodejs based ldapproxy to the CI web services.
     
     Description: REST call that takes in url as argument.  GET calls the server and returns specified data. 
 
-    CODE:
 ```javascript
 async get(url = '/') {
     log.debug('(url): ',url);
@@ -229,10 +228,41 @@ async get(url = '/') {
     }
 
     return await request(options);
-    }
+}
 ```
     Options Variable: 
         uri: cloud identity tenant plus the specific search url from parameter.
-        method: GET request.
+        method: GET - type of request.
         headers: This information contains information on the token created in initialization for security
-    
+
+    Return: 
+        Function makes the REST call and awaits the return object
+
+### POST
+    Usage: post(url, Inbody)
+
+    Description: REST call that takes in the url and body of data that is to be added.
+
+```javascript
+    async post(url = '/', Inbody) {
+      log.debug('(url): ', url);
+
+      var options = {
+          uri: this.config.tenant.ui+url+this.config.tenant.registry,
+          method: "POST",
+          json: true,
+          headers: { "Accept": "application/json", "Content-Type": "application/json", "authorization": "Bearer "+token.get()},
+          body: Inbody
+      }
+
+      return await request(options);
+  }
+```
+    Options Varible: 
+        uri: cloud identity tenant uri plus the post destination plus the tenant registry
+        method: POST - type of request
+        json: true
+        headers: This information contains information on the token created in initialization for security
+
+    Return: 
+        After option varible is initialized, the POST is called to specific tenant and uri, then waits for data to be posted, returns whether call was successful.  
