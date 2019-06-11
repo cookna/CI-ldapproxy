@@ -218,17 +218,21 @@ A nodejs based ldapproxy to the CI web services.
     Description: REST call that takes in url as argument.  GET calls the server and returns specified data. 
 
     CODE:
+```javascript
+async get(url = '/') {
+    log.debug('(url): ',url);
 
-```
-var options = {
-uri: this.config.tenant.ui+url,
+    var options = {
+      uri: this.config.tenant.ui+url,
       method: "GET",
       headers: { "authorization": "Bearer "+token.get() },
     }
+
     return await request(options);
+    }
 ```
     Options Variable: 
         uri: cloud identity tenant plus the specific search url from parameter.
         method: GET request.
-        headers: This information contains information on the token created in initialization for security.
+        headers: This information contains information on the token created in initialization for security
     
