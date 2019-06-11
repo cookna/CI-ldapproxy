@@ -218,7 +218,7 @@ A nodejs based ldapproxy to the CI web services.
     Description: REST call that takes in url as argument.  GET calls the server and returns specified data. 
 
     CODE:
-'''javascript
+    '''javascript
     async get(url = '/') {
     log.debug('(url): ',url);
 
@@ -230,7 +230,7 @@ A nodejs based ldapproxy to the CI web services.
 
     return await request(options);
     }
-  '''
+    '''
     Options Variable: 
         uri: cloud identity tenant plus the specific search url from parameter.
         method: GET request.
