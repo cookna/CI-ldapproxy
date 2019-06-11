@@ -219,7 +219,7 @@ A nodejs based ldapproxy to the CI web services.
 
     CODE:
 
-'''javascript
+'''
     var options = {
       uri: this.config.tenant.ui+url,
       method: "GET",
