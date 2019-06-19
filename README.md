@@ -169,13 +169,14 @@ A nodejs based ldapproxy to the CI web services.
 ## Functions in ldapproxy.js
 
 #### server.bind
-  Usage: server.bind(config.ldap.root, function(req,res, next))
+    Usage: server.bind(config.ldap.root, function(req,res, next))
 
-  Description:
-* Creates a connection between LDAP proxy and Cloud using the username and password provided by input in command-line arguement
-  Parameters:
-* config.ldap.root: DONT KNOW
-* function(req, res, next): For a more detailed description [link](https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113).
+    Description:
+        Creates a connection between LDAP proxy and Cloud using the username and password provided by input in command-line arguement
+
+    Parameters:
+        config.ldap.root: DONT KNOW
+        function(req, res, next): For a more detailed description https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113
 
     Return: 
         Function waits for client to send next request
@@ -186,7 +187,7 @@ A nodejs based ldapproxy to the CI web services.
         Most of the work happens as part of searches, we will not enable all kinds of searchs but only the ones needed specificially for this implementation.  This samply is tuned for searches done by ISAM using a federeated registry and basic user.  We will use a combination of filter and dn to identify the response we need to create.  NOTE that config.ldap.root is case sensitive so we use a lower case
     Paremeters: 
         'ou=users, o=pps': Creates container, searching only users
-        function(req, res, next): For a more detailed description <https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113>
+        function(req, res, next): For a more detailed description https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113
     Return: 
         Function waits for client to send next request
 
@@ -197,7 +198,7 @@ A nodejs based ldapproxy to the CI web services.
         Most of the work happens as part of searches, we will not enable all kinds of searchs but only the ones needed specificially for this implementation.  This samply is tuned for searches done by ISAM using a federeated registry and basic user.  We will use a combination of filter and dn to identify the response we need to create.  NOTE that config.ldap.root is case sensitive so we use a lower case
     Paremeters: 
         'ou=groups, o=pps': Creates container, searching only groups
-        function(req, res, next): For a more detailed description <https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113>
+        function(req, res, next): For a more detailed description https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113
     Return: 
         Function waits for client to send next request
 
@@ -208,7 +209,7 @@ A nodejs based ldapproxy to the CI web services.
         Server function that adds a new user to cloud
     Parameters: 
         config.ldap.root: DONT KNOW
-        function(req, res, next): For a more detailed description [click]
+        function(req, res, next): For a more detailed description https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113
     Return: 
         Function waits for client to send next request
 
@@ -219,9 +220,8 @@ A nodejs based ldapproxy to the CI web services.
         Kicks the server
     Parameters:
         config.ldap.root: DONT KNOW 
-        function(): NOT USED
+        function(): For a more detailed description https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113
 
-[click]: https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113
 ## Functions in CIRequest
     Description: CIRequest is an abstract class that contains all REST calls used in ldapproxy.js
 
