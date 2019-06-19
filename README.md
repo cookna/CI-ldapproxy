@@ -169,17 +169,16 @@ A nodejs based ldapproxy to the CI web services.
 ## Functions in ldapproxy.js
 
 #### server.bind
-    Usage: server.bind(config.ldap.root, function(req,res, next))
+  Usage: server.bind(config.ldap.root, function(req,res, next))
 
-    Description:
-        Creates a connection between LDAP proxy and Cloud using the username and password provided by input in command-line arguement
-    Parameters:
-        config.ldap.root: DONT KNOW
-        function(req, res, next): For a more detailed description 
-[click](https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113)
+  Description:
+* Creates a connection between LDAP proxy and Cloud using the username and password provided by input in command-line arguement
+  Parameters:
+* config.ldap.root: DONT KNOW
+* function(req, res, next): For a more detailed description [link](https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113).
+
     Return: 
         Function waits for client to send next request
-
 #### server.search
     Usage: server.seacher('ou=users, o=pps', function(req, res, next))
 
@@ -209,7 +208,7 @@ A nodejs based ldapproxy to the CI web services.
         Server function that adds a new user to cloud
     Parameters: 
         config.ldap.root: DONT KNOW
-        function(req, res, next): For a more detailed description <https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113>
+        function(req, res, next): For a more detailed description [click]
     Return: 
         Function waits for client to send next request
 
@@ -222,7 +221,7 @@ A nodejs based ldapproxy to the CI web services.
         config.ldap.root: DONT KNOW 
         function(): NOT USED
 
-
+[click]: https://medium.com/@selvaganesh93/how-node-js-middleware-works-d8e02a936113
 ## Functions in CIRequest
     Description: CIRequest is an abstract class that contains all REST calls used in ldapproxy.js
 
