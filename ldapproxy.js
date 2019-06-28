@@ -192,7 +192,7 @@ server.search('ou=groups,o=pps', function(req, res, next) {
 
     if(id == '*' || id == undefined) {
       log.info("Searching for Groups");
-      CF.getGroups().then ( groups => {
+      CF.getAllGroups().then ( groups => {
         if(groups == null) {
           info.warn("No Groups Available");
           res.end();
@@ -217,7 +217,7 @@ server.search('ou=groups,o=pps', function(req, res, next) {
     }
     else {
       //Searching for a specific group 
-      CF.getGroups().then(async groups => {
+      CF.getAllGroups().then(async groups => {
         if(groups == null) {
           log.warn("Invalid return, no groups available");
           res.end();

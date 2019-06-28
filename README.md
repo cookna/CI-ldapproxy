@@ -10,8 +10,10 @@ A nodejs based ldapproxy to the CI web services.
 
 ## Start-up
 1. In order to query the proxy, start up the server by entering node ldapproxy.js into terminal/IDE terminal
-2. Install Nodejs using link in materials
+2. Install Nodejs using link in materials (these are required in order to run Proxy)
   * In directory where project is located type command _npm install_ to install nodejs modules.  This will solve any 'Cannot find Module' errors at compile-time
+  * In the same directory type command _npm install node-cache --save_ to implement caching. 
+  * To enable encryption for authentication use _npm install crypto-js_ 
 3. From separate terminal window run some built in functionalities the proxy allows
   * Example query
     * ldapsearch -h localhost -p 389 -D "uid=username, o=pps" -w password -b "o=pps" ou=groups

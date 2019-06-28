@@ -100,7 +100,7 @@ async getAllUsers() {
     }
   }
   
-  async getGroups() {
+  async getAllGroups() {
     
     try {
       let cred = await req.get('/v2.0/Groups/');
