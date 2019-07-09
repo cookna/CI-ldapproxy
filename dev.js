@@ -11,5 +11,9 @@ module.exports = {
       root: 'o=pps',
       type: 'uid='
     },
+    cache: {
+      active: 'true',
+      timeout: 600
+    },
     log: "log"
   };

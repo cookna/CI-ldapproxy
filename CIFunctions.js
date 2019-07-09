@@ -46,7 +46,7 @@ module.exports = class CIFunctions {
       
         try {
           let url = '/v1.0/authnmethods/password/';
-          return await req.post(url, body);
+          return await req.authPost(url, body);
         } catch (e) {
           log.error('try catch is ', e);
           return null;

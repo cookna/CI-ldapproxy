@@ -56,15 +56,30 @@ module.exports = class CIRequest {
   async post(url = '/', Inbody) {
       log.debug('(url): ', url);
       
-      var encryptBody = Crypto.AES.encrypt(JSON.stringify(Inbody), 'secret key is 123').toString();
-      var bytes = Crypto.AES.decrypt(encryptBody.toString(), 'secret key is 123');
-      var decrypt = JSON.parse(bytes.toString(Crypto.enc.Utf8));
       
-      console.log(decrypt);
+      options = {
+          uri: this.config.tenant.ui+url+this.config.tenant.registry,
+          method: "POST",
+          json: true,
+          headers: { "Accept": "application/json", "Content-Type": "application/json", "authorization": "Bearer "+token.get()},
+          body: Inbody
+    }
+      return await request(options);;
+  }
+  //Authentication Post, implements encrypting username and password -> storing in cache to speed up 
+  async authPost(url = '/', Inbody) {
+    log.debug('(url): ', url);
+      
+      var encryptBody = Crypto.AES.encrypt(JSON.stringify(Inbody), 'secret key is 123').toString();
+    
       var options;
-      if((options = CICache.get(encryptBody)) != undefined) {
-        log.info("POST Cache hit");
-        return options;
+      if((options = CICache.get(Inbody.username)) != undefined) {
+        var bytes = Crypto.AES.decrypt(encryptBody.toString(), 'secret key is 123');
+        var decrypt = JSON.parse(bytes.toString(Crypto.enc.Utf8));
+        if(decrypt.username == Inbody.username && decrypt.password == Inbody.password) {
+          log.info("POST Cache hit");
+          return options; 
+        }
       } else {
       
       options = {
@@ -77,7 +92,7 @@ module.exports = class CIRequest {
     }
 
       var retValue = await request(options);
-      CICache.set(encryptBody, retValue);
+      CICache.set(Inbody.username, encryptBody);
       return retValue;
   }
 
